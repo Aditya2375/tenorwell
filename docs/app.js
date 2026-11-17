@@ -202,7 +202,7 @@ function render(r) {
   );
   text(
     "worst-calendar",
-    `Smallest later-minus-earlier w: ${c.delta_w.toExponential(4)} at k=${c.k.toFixed(2)}, T=${c.earlier.toFixed(3)}→${c.later.toFixed(3)}.`,
+    `Near-minimum later-minus-earlier w: ${c.delta_w.toExponential(4)} at k=${c.k.toFixed(2)}, T=${c.earlier.toFixed(3)}→${c.later.toFixed(3)}. First cell within 10⁻¹⁴ of minimum.`,
   );
   rows(
     "fits",

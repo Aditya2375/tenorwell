@@ -187,7 +187,12 @@ class SurfaceTests(unittest.TestCase):
                 )
                 self.assertEqual(
                     r["summary"]["worst_calendar"],
-                    min(r["calendar"], key=lambda x: x["delta_w"]),
+                    next(
+                        v
+                        for v in r["calendar"]
+                        if v["delta_w"]
+                        <= min(x["delta_w"] for x in r["calendar"]) + 1e-14
+                    ),
                 )
                 for i in range(14):
                     for j, k in enumerate(c.MONEYNESS):

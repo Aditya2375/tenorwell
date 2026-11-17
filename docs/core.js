@@ -172,7 +172,10 @@ export function analyze(value = settings()) {
     }
   const flat = rows.flat(),
     worstG = flat.reduce((a, b) => (b.g < a.g ? b : a)),
-    worstCalendar = calendar.reduce((a, b) => (b.delta_w < a.delta_w ? b : a));
+    minimumCalendarDelta = Math.min(...calendar.map((c) => c.delta_w)),
+    worstCalendar = calendar.find(
+      (c) => c.delta_w <= minimumCalendarDelta + 1e-14,
+    );
   return {
     settings: config,
     name: WORLDS[config.scenario][0],

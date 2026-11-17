@@ -163,7 +163,11 @@ def analyze(value=None):
     ]
     flat = [cell for row in rows for cell in row]
     worst_g = min(flat, key=lambda c: c["g"])
-    worst_calendar = min(calendar, key=lambda c: c["delta_w"])
+    minimum_calendar_delta = min(c["delta_w"] for c in calendar)
+    # Report the first cell within a fixed roundoff tie band of the true minimum.
+    worst_calendar = next(
+        c for c in calendar if c["delta_w"] <= minimum_calendar_delta + 1e-14
+    )
     return {
         "settings": config,
         "name": WORLDS[config["scenario"]][0],

@@ -88,7 +88,7 @@ At intermediate maturities, w and its derivatives are first interpolated as desc
 
 ### Sampled calendar diagnostic
 
-At each fixed k, compute later-minus-earlier total variance for every adjacent pair of grid maturities. There are `14*61 = 854` comparisons. Differences below `-1e-10` are flagged. The comparison is at constant log-forward moneyness, as in the cited primary paper, not at arbitrary equal strikes under moving forwards.
+At each fixed k, compute later-minus-earlier total variance for every adjacent pair of grid maturities. There are `14*61 = 854` comparisons. Differences below `-1e-10` are flagged. For the summary location only, cells within `1e-14` total-variance units of the actual minimum are treated as roundoff ties; the first in maturity-then-k order is reported. All deltas and flags remain unchanged, and the ledger retains the exact floating-point minimum too. The comparison is at constant log-forward moneyness, as in the cited primary paper, not at arbitrary equal strikes under moving forwards.
 
 No executable spread price, profit, transaction cost, liquidity, financing, settlement or dynamic arbitrage is modeled. The word "flag" describes a numerical inconsistency in this synthetic parameterization, not a real trading opportunity. No-flags is not called PASS or arbitrage-free by the UI.
 
