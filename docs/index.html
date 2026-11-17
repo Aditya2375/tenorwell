@@ -1,0 +1,438 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self'; connect-src 'none'; base-uri 'none'; object-src 'none'; form-action 'none'"
+    />
+    <meta name="theme-color" content="#f3f5f8" />
+    <title>Tenorwell · The shape of a fit</title>
+    <link rel="icon" href="icon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <a class="skip" href="#lab">Skip to lab</a>
+    <header>
+      <a class="brand" href="#"><i aria-hidden="true">≋</i> tenorwell</a>
+      <nav aria-label="Main">
+        <a href="#lab">Surface</a><a href="#audit">Audit</a
+        ><a href="#method">Method</a
+        ><a href="https://github.com/Aditya2375/tenorwell">Source ↗</a>
+      </nav>
+    </header>
+    <main>
+      <section class="hero">
+        <div>
+          <p class="eyebrow">VOLATILITY STUDY / 007</p>
+          <h1>A smooth fit<br />can still <em>break.</em></h1>
+          <p class="intro">
+            Four fitted smiles. One interpolated surface. A close fit does not
+            make the shape consistent.
+          </p>
+          <p class="hero-sub">
+            Synthetic implied volatility · Finite-grid SVI calibration<br />No
+            market quotes. No global arbitrage-free claim.
+          </p>
+        </div>
+        <div class="process">
+          <p class="eyebrow">FROM NODES TO DIAGNOSTICS</p>
+          <div>
+            <strong>28</strong
+            ><span>invented IV nodes<br />4 maturities × 7 points</span>
+          </div>
+          <div>
+            <strong>4</strong
+            ><span
+              >independently fitted smiles<br />conditional linear least
+              squares</span
+            >
+          </div>
+          <div>
+            <strong>915</strong
+            ><span
+              >sampled surface points<br />shape checks, not certification</span
+            >
+          </div>
+        </div>
+      </section>
+      <section id="lab">
+        <div class="section-head">
+          <div>
+            <p class="eyebrow">01 / CALIBRATE & INSPECT</p>
+            <h2>Look past the curve.</h2>
+          </div>
+          <span id="status" role="status" aria-live="polite">LOADING</span>
+        </div>
+        <form id="controls">
+          <label
+            >Teaching world<select id="scenario">
+              <option value="0">Quiet control</option>
+              <option value="1">Maturity out of order</option>
+              <option value="2">Sharp wings</option>
+            </select></label
+          ><label
+            >Shape candidate grid<select id="budget">
+              <option value="0">36 candidates / maturity</option>
+              <option value="1">175 candidates / maturity</option>
+            </select></label
+          ><label>Inspect maturity (years)<select id="slice"></select></label>
+          <div class="buttons">
+            <button id="apply" type="submit">Fit & inspect ↗</button
+            ><button id="reset" type="button" class="secondary">Reset</button>
+          </div>
+          <p id="error" role="alert"></p>
+        </form>
+        <div class="world-note">
+          <h3 id="world-name"></h3>
+          <p id="world-desc"></p>
+        </div>
+        <div class="metrics">
+          <article>
+            <span>TOTAL-VARIANCE FIT RMSE</span><strong id="rmse"></strong
+            ><small>28 training nodes · not forecast error</small>
+          </article>
+          <article>
+            <span>NEGATIVE g(k) SAMPLES</span
+            ><strong id="density-count"></strong
+            ><small id="density-detail"></small>
+          </article>
+          <article>
+            <span>CALENDAR DECREASES</span><strong id="calendar-count"></strong
+            ><small id="calendar-detail"></small>
+          </article>
+        </div>
+        <p class="warning">
+          No flags on this grid means only no flags on this grid. Neither a good
+          fit nor positive total variance proves a surface free of static
+          arbitrage. We do not check global wing conditions or every point
+          between samples.
+        </p>
+        <div class="surface-panel">
+          <div class="panel-head">
+            <div>
+              <p class="eyebrow">IMPLIED VOLATILITY / σ = √(w/T)</p>
+              <h3>Time has a shape.</h3>
+            </div>
+            <span id="iv-range"></span>
+          </div>
+          <p>
+            Horizontal: log-forward moneyness k = log(K/F). Vertical: years to
+            expiry. Color: annualized implied volatility. Outlined row is the
+            selected maturity.
+          </p>
+          <div
+            class="heatmap-scroll"
+            tabindex="0"
+            role="region"
+            aria-label="Implied-volatility heatmap"
+          >
+            <svg
+              id="heatmap"
+              role="img"
+              aria-label="Implied-volatility surface heatmap"
+            ></svg>
+          </div>
+          <div class="legend">
+            <span>Lower IV</span><i aria-hidden="true"></i><span>Higher IV</span
+            ><span>Orange dot: g(k) below tolerance</span>
+          </div>
+        </div>
+        <div class="panels">
+          <article class="panel">
+            <div class="panel-head">
+              <div>
+                <p class="eyebrow">SELECTED MATURITY</p>
+                <h3 id="slice-title"></h3>
+              </div>
+            </div>
+            <svg
+              id="smile"
+              role="img"
+              aria-label="Fitted implied volatility slice"
+            ></svg>
+            <p id="slice-note" class="caption"></p>
+          </article>
+          <article class="panel">
+            <p class="eyebrow">SAMPLED BUTTERFLY DIAGNOSTIC</p>
+            <h3>Positive variance is not enough.</h3>
+            <svg
+              id="density"
+              role="img"
+              aria-label="Sampled g diagnostic for selected maturity"
+            ></svg>
+            <p class="caption">
+              g(k) uses total variance and its analytic first and second k
+              derivatives. Below −10⁻⁹ is flagged. It is a density-sign
+              diagnostic, not a probability density or tradable quote.
+            </p>
+          </article>
+        </div>
+        <div class="worst">
+          <p id="worst-g"></p>
+          <p id="worst-calendar"></p>
+        </div>
+      </section>
+      <section id="audit">
+        <div class="section-head">
+          <div>
+            <p class="eyebrow">02 / SHOW THE WORK</p>
+            <h2>Every number has a place.</h2>
+          </div>
+        </div>
+        <p class="section-intro">
+          Annualized IV is shown as a percentage. Total variance w, its
+          derivatives and g are dimensionless. Maturity is in abstract year
+          fractions. Wide tables scroll inside their own panels.
+        </p>
+        <article class="panel">
+          <h3>Four fitted raw-SVI smiles</h3>
+          <p>
+            w(k) = a + b[ρ(k−m) + √((k−m)² + s²)]. Nonlinear shapes come from a
+            finite candidate grid; a and b are conditionally fitted by OLS.
+            Lowest accepted squared total-variance error wins, with the earlier
+            candidate winning an exact tie.
+          </p>
+          <div
+            class="table-wrap"
+            tabindex="0"
+            role="region"
+            aria-label="Fitted SVI parameter table"
+          >
+            <table>
+              <thead>
+                <tr>
+                  <th scope="col">T (years)</th>
+                  <th scope="col">a</th>
+                  <th scope="col">b</th>
+                  <th scope="col">ρ</th>
+                  <th scope="col">m</th>
+                  <th scope="col">s</th>
+                  <th scope="col">Winner ID</th>
+                  <th scope="col">Accepted / tried</th>
+                  <th scope="col">RMSE w</th>
+                </tr>
+              </thead>
+              <tbody id="fits"></tbody>
+            </table>
+          </div>
+        </article>
+        <details open>
+          <summary>Selected slice: all 61 sampled points</summary>
+          <div
+            class="table-wrap"
+            tabindex="0"
+            role="region"
+            aria-label="Selected maturity points"
+          >
+            <table>
+              <thead>
+                <tr>
+                  <th scope="col">k</th>
+                  <th scope="col">K/F</th>
+                  <th scope="col">IV (%)</th>
+                  <th scope="col">w</th>
+                  <th scope="col">dw/dk</th>
+                  <th scope="col">d²w/dk²</th>
+                  <th scope="col">g(k)</th>
+                  <th scope="col">Density flag</th>
+                </tr>
+              </thead>
+              <tbody id="selected"></tbody>
+            </table>
+          </div>
+        </details>
+        <details>
+          <summary>28 synthetic IV nodes and fit residuals</summary>
+          <p>
+            These are invented IV targets, not prices inverted from market
+            quotes. No node is held out. RMSE measures training fit only.
+          </p>
+          <div
+            class="table-wrap"
+            tabindex="0"
+            role="region"
+            aria-label="Synthetic calibration nodes"
+          >
+            <table>
+              <thead>
+                <tr>
+                  <th scope="col">T</th>
+                  <th scope="col">k</th>
+                  <th scope="col">Target IV (%)</th>
+                  <th scope="col">Fitted IV (%)</th>
+                  <th scope="col">Target w</th>
+                  <th scope="col">Fitted w</th>
+                  <th scope="col">Residual w</th>
+                </tr>
+              </thead>
+              <tbody id="nodes"></tbody>
+            </table>
+          </div>
+        </details>
+        <details>
+          <summary>Every nonlinear candidate and conditional fit</summary>
+          <p>
+            Accept only b ≥ 0 and the global raw-SVI minimum a + bs√(1−ρ²) &gt;
+            10⁻⁸. This positivity filter is not an arbitrage filter. Rejected
+            candidates retain their actual fit objective; no candidate is
+            hidden.
+          </p>
+          <div
+            class="table-wrap tall"
+            tabindex="0"
+            role="region"
+            aria-label="Complete candidate ledger"
+          >
+            <table>
+              <thead>
+                <tr>
+                  <th scope="col">T</th>
+                  <th scope="col">ID</th>
+                  <th scope="col">a</th>
+                  <th scope="col">b</th>
+                  <th scope="col">ρ</th>
+                  <th scope="col">m</th>
+                  <th scope="col">s</th>
+                  <th scope="col">Minimum w</th>
+                  <th scope="col">SSE w</th>
+                  <th scope="col">Positivity filter</th>
+                </tr>
+              </thead>
+              <tbody id="candidates"></tbody>
+            </table>
+          </div>
+        </details>
+        <details>
+          <summary>Full surface: all 915 sampled points</summary>
+          <div
+            class="table-wrap tall"
+            tabindex="0"
+            role="region"
+            aria-label="Complete surface ledger"
+          >
+            <table>
+              <thead>
+                <tr>
+                  <th scope="col">T</th>
+                  <th scope="col">k</th>
+                  <th scope="col">IV (%)</th>
+                  <th scope="col">w</th>
+                  <th scope="col">dw/dk</th>
+                  <th scope="col">d²w/dk²</th>
+                  <th scope="col">g(k)</th>
+                  <th scope="col">Density flag</th>
+                </tr>
+              </thead>
+              <tbody id="surface-data"></tbody>
+            </table>
+          </div>
+        </details>
+        <details>
+          <summary>
+            Calendar audit: all 854 adjacent-maturity comparisons
+          </summary>
+          <p>
+            Fixed k, not a comparison of arbitrary different moneyness points. A
+            later-minus-earlier total-variance decrease below −10⁻¹⁰ is flagged.
+            Endpoints are not extrapolated.
+          </p>
+          <div
+            class="table-wrap tall"
+            tabindex="0"
+            role="region"
+            aria-label="Complete calendar audit"
+          >
+            <table>
+              <thead>
+                <tr>
+                  <th scope="col">Earlier T</th>
+                  <th scope="col">Later T</th>
+                  <th scope="col">Fixed k</th>
+                  <th scope="col">Later w − earlier w</th>
+                  <th scope="col">Flag</th>
+                </tr>
+              </thead>
+              <tbody id="calendar-data"></tbody>
+            </table>
+          </div>
+        </details>
+      </section>
+      <section id="method">
+        <div class="section-head">
+          <div>
+            <p class="eyebrow">03 / MODEL CONTRACT</p>
+            <h2>Fitted. Not certified.</h2>
+          </div>
+        </div>
+        <div class="method-grid">
+          <article>
+            <h3>Finite calibration.</h3>
+            <p>
+              Each of four maturities has seven nodes at k = −0.30, −0.20, …,
+              0.30. Synthetic IV becomes target total variance w = σ²T. For
+              every fixed (m,s,ρ), centered linear least squares fits a and b.
+              This is a bounded finite-candidate minimum, not a continuous
+              global optimum or a neural network.
+            </p>
+          </article>
+          <article>
+            <h3>Interpolation, not repair.</h3>
+            <p>
+              Between 0.25, 0.5, 1 and 2 years, total variance is linear in time
+              at fixed k. The k derivatives use the same linear weights. No
+              extrapolation is offered. The grid has 15 maturities and 61 k
+              points from −0.30 to 0.30. Finer candidate search can improve fit
+              while making sampled shape defects worse.
+            </p>
+          </article>
+          <article>
+            <h3>Two separate shape checks.</h3>
+            <p>
+              Calendar checks look for decreasing w at fixed log-forward
+              moneyness. Butterfly diagnostics sample g(k) = (1 − kw′/(2w))² −
+              (w′²/4)(1/w + 1/4) + w″/2. The continuous no-arbitrage conditions
+              require more than sampled nonnegative values. Global wing limits,
+              market frictions and executable spreads are not checked.
+            </p>
+          </article>
+          <article>
+            <h3>Only a numerical lesson.</h3>
+            <p>
+              No real quotes, option prices, underlying, market calibration,
+              holdout performance, risk forecast, probability of loss, strategy
+              or advice. No accounts, API keys, uploads, persistence, broker
+              connection, order or payment. Implied volatility here is the
+              square root of a fitted variance parameter divided by time, not a
+              forecast of realized moves.
+            </p>
+          </article>
+        </div>
+        <div class="reading">
+          <h3>Read beyond the demo</h3>
+          <a href="https://arxiv.org/html/1204.0646"
+            >Gatheral & Jacquier: SVI and static arbitrage ↗</a
+          ><a href="https://papers.ssrn.com/sol3/papers.cfm?abstract_id=2175001"
+            >Le Floch: interpolation can introduce arbitrage ↗</a
+          ><a
+            href="https://docs.scipy.org/doc/scipy/tutorial/interpolate/1D.html"
+            >SciPy: interpolation and boundary behavior ↗</a
+          ><a
+            href="https://www.cmegroup.com/education/articles-and-reports/implied-volatility"
+            >CME: implied volatility and skew ↗</a
+          >
+        </div>
+      </section>
+    </main>
+    <footer>
+      <a class="brand" href="#">≋ tenorwell</a>
+      <p>
+        A synthetic surface study by Aditya Kulkarni.<br />MIT licensed · Python
+        + JavaScript · Education only.
+      </p>
+      <a href="https://github.com/Aditya2375/tenorwell">Read the code ↗</a>
+    </footer>
+    <script type="module" src="app.js"></script>
+  </body>
+</html>
